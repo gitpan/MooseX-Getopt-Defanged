@@ -6,7 +6,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.14.1');
 
 
 use Exception::Class (
@@ -43,7 +43,7 @@ MooseX::Getopt::Defanged::Exception - Something went wrong that is somehow assoc
 
 =head1 VERSION
 
-This document describes MooseX::Getopt::Defanged::Exception version 1.14.0.
+This document describes MooseX::Getopt::Defanged::Exception version 1.14.1.
 
 
 =head1 DESCRIPTION

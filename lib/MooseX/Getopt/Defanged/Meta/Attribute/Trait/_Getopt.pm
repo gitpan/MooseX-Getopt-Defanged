@@ -6,7 +6,7 @@ use utf8;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.14.1');
 
 
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification
@@ -203,7 +203,7 @@ L<MooseX::Getopt::Defanged> for how to specify options.
 =head1 VERSION
 
 This document describes
-MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.14.0.
+MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.14.1.
 
 
 =head1 DESCRIPTION

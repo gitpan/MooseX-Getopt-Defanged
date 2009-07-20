@@ -12,7 +12,7 @@ use autodie qw< :default >;
 use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.14.1');
 
 
 use Getopt::Long qw<>;
@@ -293,7 +293,7 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
 
 =head1 VERSION
 
-This document describes MooseX::Getopt::Defanged version 1.14.0.
+This document describes MooseX::Getopt::Defanged version 1.14.1.
 
 
 =head1 DESCRIPTION

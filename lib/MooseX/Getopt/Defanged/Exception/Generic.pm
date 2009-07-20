@@ -6,7 +6,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.14.1');
 
 
 use Readonly;
@@ -73,7 +73,7 @@ or
 =head1 VERSION
 
 This document describes MooseX::Getopt::Defanged::Exception::Generic version
-1.14.0.
+1.14.1.
 
 
 =head1 DESCRIPTION
