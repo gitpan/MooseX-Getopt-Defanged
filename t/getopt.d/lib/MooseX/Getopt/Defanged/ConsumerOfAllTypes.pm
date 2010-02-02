@@ -7,7 +7,7 @@ use Moose;
 use MooseX::Accessors::ReadWritePrivate;
 
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.15.0');
 
 
 with 'MooseX::Getopt::Defanged';

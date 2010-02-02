@@ -1,3 +1,13 @@
+v1.15.0 2010-02-xx
+
+    Awesome patch from Tuomas Jormola that fixed a problem with options that
+    were objects that also had default values.  See the documentation for
+    getopt_stringifier.
+
+    Deal with the deprecation of Class::MOP::Class::get_attribute_map() in
+    Class::MOP 0.95.
+
+
 v1.14.1 2009-07-19
 
     Brown paper bag release to lose the .bzr directory.

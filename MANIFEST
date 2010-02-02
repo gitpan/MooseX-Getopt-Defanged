@@ -15,9 +15,11 @@ t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerOfAllTypes.pm
 t/getopt.d/lib/MooseX/Getopt/Defanged/MinimalConsumer.pm
 t/getopt.t
 t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/ConsumerOfAllTypesWithDefaults.pm
+t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/ConsumerWithObjects.pm
 t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/ConsumerWithOptionNameOverridesAndAliases.pm
 t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/ConsumerWithTypeAndSpecificationOverrides.pm
 t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/MinimalConsumer.pm
+t/meta-attribute-trait-_getopt.d/lib/StringWrapper.pm
 t/meta-attribute-trait-_getopt.t
 xt/author/consistent_version_numbers.t
 xt/author/distribution.t

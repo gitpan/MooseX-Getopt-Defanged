@@ -1,6 +1,6 @@
 ---
 name: MooseX-Getopt-Defanged
-version: v1.14.1
+version: v1.15.0
 author:
   - 'Elliot Shank <perl@galumph.com>'
 abstract: "Standard processing of command-line options, with Getopt::Long's nasty behavior defanged."
@@ -8,6 +8,7 @@ license: bsd
 resources:
   license: http://www.opensource.org/licenses/bsd-license.php
 build_requires:
+  Carp: 0
   File::Spec::Functions: 0
   Test::Class: 0
   Test::Compile: 0
@@ -15,19 +16,21 @@ build_requires:
   Test::Moose: 0
   Test::More: 0.88
   lib: 0
+  overload: 0
   parent: 0
 requires:
   English: 0
   Exception::Class: 0
   Exporter: 0
   Getopt::Long: 0
-  Moose: 0.86
-  Moose::Role: 0.86
-  Moose::Util::TypeConstraints: 0.86
+  Moose: 0.92
+  Moose::Role: 0.92
+  Moose::Util::TypeConstraints: 0.92
   MooseX::Accessors::ReadWritePrivate: 0
   MooseX::AttributeHelpers: 0.2
   MooseX::StrictConstructor: 0.08
   Readonly: 0
+  Scalar::Util: 0
   autodie: 0
   strict: 0
   utf8: 0
@@ -41,26 +44,26 @@ dynamic_config: 0
 provides:
   Moose::Meta::Attribute::Custom::Trait::MooseX::Getopt::Defanged::Option:
     file: lib/Moose/Meta/Attribute/Custom/Trait/MooseX/Getopt/Defanged/Option.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged:
     file: lib/MooseX/Getopt/Defanged.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged::Exception:
     file: lib/MooseX/Getopt/Defanged/Exception.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged::Exception::Generic:
     file: lib/MooseX/Getopt/Defanged/Exception/Generic.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged::Exception::InvalidSpecification:
     file: lib/MooseX/Getopt/Defanged/Exception/InvalidSpecification.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged::Exception::User:
     file: lib/MooseX/Getopt/Defanged/Exception/User.pm
-    version: v1.14.1
+    version: v1.15.0
   MooseX::Getopt::Defanged::OptionTypeMetadata:
     file: lib/MooseX/Getopt/Defanged/OptionTypeMetadata.pm
-    version: v1.14.1
-generated_by: Module::Build version 0.34
+    version: v1.15.0
+generated_by: Module::Build version 0.35
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
   version: 1.4

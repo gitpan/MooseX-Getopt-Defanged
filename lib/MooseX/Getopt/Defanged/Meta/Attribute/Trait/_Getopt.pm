@@ -6,9 +6,13 @@ use utf8;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.14.1');
+use version; our $VERSION = qv('v1.15.0');
 
 
+use Scalar::Util qw< blessed >;
+
+
+use MooseX::Getopt::Defanged::Exception::Generic qw< throw_generic >;
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification
     qw< throw_invalid_specification >;
 
@@ -67,6 +71,15 @@ has getopt_required => (
     default     => sub { 0 },
     reader      => 'is_getopt_required',
     writer      => 'set_getopt_required',
+);
+
+# How to trim objects into strings for Getopt::Long parsing
+has getopt_stringifier => (
+    isa         => 'CodeRef|Str',
+    is          => 'rw',
+    required    => 0,
+    reader      => 'get_getopt_stringifier',
+    writer      => 'set_getopt_stringifier',
 );
 
 
@@ -168,17 +181,69 @@ sub get_full_specification {
 sub get_value_or_default {
     my ($self, $getopt_consumer, $type_metadata) = @_;
 
-    if ( defined ( my $value = $self->get_value($getopt_consumer) ) ) {
+    my $value = $self->get_value($getopt_consumer);
+
+    if (not defined $value) {
+        my $type_name = $self->get_type_name();
+        my $default_value_generator =
+            $type_metadata->get_default_value_generator($type_name)
+            or return;
+        $value = $default_value_generator->();
+    } # end if
+
+    my $value_string = $self->get_stringified_value($value);
+    if (blessed $value_string) {
+        throw_invalid_specification
+                q<The value of the ">,
+            .   $self->name()
+            .   q<" attribute is an object so it cannot be passed to Getopt::Long. Specify a value for "getopt_stringifier" on this attribute.>;
+    } # end if
+
+    return $value_string;
+} # end get_value_or_default()
+
+# Stringify the given value.
+sub get_stringified_value {
+    my ($self, $value) = @_;
+
+    # no need to stringify
+    if (not ref $value) {
         return $value;
     } # end if
 
-    my $type_name = $self->get_type_name();
-    my $default_value_generator =
-        $type_metadata->get_default_value_generator($type_name)
-        or return;
+    # no "getopt_stringifier"
+    my $stringifier = $self->get_getopt_stringifier();
+    if (not defined $stringifier) {
+        return $value;
+    } # end if
 
-    return $default_value_generator->();
-} # end get_value_or_default()
+    # stringify each element
+    if (ref $value eq 'ARRAY') {
+        return [ map { $self->get_stringified_value($_) } @{$value} ];
+    } # end if
+
+    # "getopt_stringifier" is a code ref that handles stringification
+    if (ref $stringifier eq 'CODE') {
+        return $stringifier->($value);
+    } # end if
+
+    my $name = $self->name();
+    # "getopt_stringifier" is a name of a stringification method
+    if (ref $stringifier) {
+        throw_invalid_specification
+            qq<The value getopt_stringifier value for attribute "$name" is neither a string nor a code reference.>;
+    } # end if
+    if (not blessed $value) {
+        throw_generic
+            qq<The value of the "$name" attribute is not an object, so the method specified by getopt_stringifier cannot be invoked.>;
+    } # end if
+    if ( not $value->can($stringifier) ) {
+        throw_invalid_specification
+            qq<The value of the "$name" attribute does not implement a "$stringifier" method.>;
+    } # end if
+
+    return $value->$stringifier();
+} # end get_stringified_value()
 
 
 1;
@@ -236,6 +301,8 @@ L<Moose::Role>
 
 L<Moose::Util::TypeConstraints>
 
+L<Scalar::Util>
+
 
 =head1 TODO
 
@@ -249,7 +316,7 @@ Elliot Shank C<< <perl@galumph.com> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright ©2008-2009, Elliot Shank
+Copyright ©2008-2010, Elliot Shank
 
 
 =head1 DISCLAIMER OF WARRANTY

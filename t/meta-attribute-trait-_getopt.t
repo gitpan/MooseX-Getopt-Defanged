@@ -8,7 +8,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.15.0');
 
 
 use English qw< -no_match_vars >;
@@ -32,6 +32,8 @@ use Test::More;
 
 
 use lib catdir( qw< t meta-attribute-trait-_getopt.d lib > );
+
+use StringWrapper qw< >;
 
 
 Readonly::Scalar my $ROLE_NAME => 'MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt';
@@ -368,6 +370,40 @@ sub _test_type_and_specification_for_attribute {
 
     return;
 } # end _test_type_and_specification_for_attribute()
+
+
+sub test_6_consumer_with_object_attributes : Tests(7) {
+    my $consumer =
+        _test_instance_creation(
+            "${ROLE_NAME}::ConsumerWithObjects"
+        );
+
+    $consumer->parse_command_line([qw<
+            --option-with-object-and-stringify-string http://www.example.net
+            --option-with-object-and-stringify-coderef http://www.example.net
+    >]);
+
+    cmp_deeply(
+        $consumer,
+        methods( option_with_object_and_stringify_string => StringWrapper->new('http://www.example.net') ),
+        'Stringify an option object using method name',
+    );
+    cmp_deeply(
+        $consumer,
+        methods( option_with_object_and_stringify_coderef => StringWrapper->new('http://www.example.net') ),
+        'Stringify an option object using code ref',
+    );
+    cmp_deeply(
+        $consumer,
+        methods( option_with_arrayref_of_objects => [
+            StringWrapper->new('http://www.example.com'),
+            StringWrapper->new('http://www.example.net') ]
+        ),
+        'Stringify an option with an array of objects',
+    );
+
+    return;
+} # end test_6_consumer_with_object_attributes()
 
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :

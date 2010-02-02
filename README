@@ -1,4 +1,4 @@
-MooseX::Getopt::Defanged::Accessors::ReadWritePrivate version 1.14.1.
+MooseX::Getopt::Defanged::Accessors::ReadWritePrivate version 1.15.0.
 
 
 
@@ -27,7 +27,7 @@ a bug in those tools and not in this distribution.
 
 COPYRIGHT AND LICENCE
 
-Copyright ©2008-2009, Elliot Shank <perl@galumph.com>. All rights reserved.
+Copyright ©2008-2010, Elliot Shank <perl@galumph.com>. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

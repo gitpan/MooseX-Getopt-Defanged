@@ -12,7 +12,7 @@ use autodie qw< :default >;
 use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
-use version; our $VERSION = qv('v1.14.1');
+use version; our $VERSION = qv('v1.15.0');
 
 
 use Getopt::Long qw<>;
@@ -57,9 +57,12 @@ sub parse_command_line {
 sub _getopt_get_option_attributes {
     my ($self) = @_;
 
+    my $metadata = $self->meta();
     my @option_attributes =
-        grep { $_->does('MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt') }
-            values %{ $self->meta()->get_attribute_map() };
+        grep {
+            $_->does('MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt')
+        }
+        map  { $metadata->get_attribute($_) } $metadata->get_attribute_list();
 
     return \@option_attributes;
 } # end _getopt_get_option_attributes()
@@ -182,7 +185,7 @@ __END__
 
 =encoding utf8
 
-=for stopwords olde ArrayRef ArrayRefs
+=for stopwords ArrayRef ArrayRefs olde stringification
 
 =head1 NAME
 
@@ -278,6 +281,20 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
         is      => 'rw',
         isa     => 'Int',
         default => 42,
+    );
+
+    # When the option is an object and a default value is given, one must
+    # provide a way to stringify the object for Getopt::Long handling
+    # using "getopt_stringifier".
+    has natural_time_option => (
+        traits              => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is                  => 'rw',
+        isa                 => 'MyDateTime',
+        default             => sub {
+            DateTime::Format::Natural->new()->parse_datetime('yesterday')
+        },
+        getopt_stringifier  => sub { scalar shift },
+        getopt_type         => 'Str',
     );
 
     # In addition to specifying the information on your option attributes, you
@@ -383,6 +400,21 @@ specify ":+".
 
 You can find out the default types handled and their default specifications by
 looking at L<MooseX::Getopt::Defanged::OptionTypeMetadata>.
+
+
+=item C<< getopt_stringifier => 'CodeRef | Str' >>
+
+If the option is an object and a default value is given, one must translate
+the object to a string representation prior to L<Getopt::Long> parsing.
+Together with coercion, the option will get its object form after command line
+arguments parsing. "getopt_stringifier" allows to you to specify how this
+stringification is done.  The value can either be a code reference or a
+string. The function handling stringification will receive the option object
+as the only argument.  It is expected to return the string value of the object
+that can be later coerced back to a new instance of the object's class. A
+short-cut is provided if you specify a string as "getopt_stringifier" value.
+It is then expected that the object contains method of this name which when
+invoked will return the string representation of the object.
 
 
 =back
@@ -553,6 +585,46 @@ The user would then need to use the option like
     myprogram --some-numbers 2 --some-numbers 1.3 --some-numbers 0.61
 
 
+=item Object with default value.
+
+In order to support objects as options with a default value, you need to
+define coercion from string and stringification of the object like this:
+
+    subtype 'My::Types::File'
+        => as class_type('Path::Class::File');
+    coerce 'My::Types::File'
+        => from 'Str'
+            => via { Path::Class::File->new($_) };
+
+    has file => (
+        traits                  => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is                      => 'rw',
+        isa                     => 'My::Types::File',
+        coerce                  => 1,
+        # This is coerced to a Path::Class::File object just like the value
+        # given at the command line, if any
+        default                 => '/path/to/file',
+        getopt_type             => 'Str',
+        # Stringify using Path::Class::File->stringify() method
+        getopt_stringifier      => 'stringify',
+        # or the same thing using a code reference.
+        # getopt_stringifier    => sub { shift->stringify() },
+    );
+
+If the program was run like
+
+    myprogram --file /some/file
+
+the program code could then use
+
+    sub some_method {
+        my $self = shift;
+
+        ref $self->file();          # Path::Class::File
+        $self->file()->stringify(); # '/some/file'
+        ...
+    }
+
 =back
 
 
@@ -584,6 +656,8 @@ on your attributes.  See above.
 perl 5.10
 
 L<autodie>
+
+L<Getopt::Long>
 
 L<Moose::Role>
 
@@ -661,7 +735,7 @@ Elliot Shank C<< <perl@galumph.com> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright ©2008-2009, Elliot Shank
+Copyright ©2008-2010, Elliot Shank
 
 
 =head1 DISCLAIMER OF WARRANTY

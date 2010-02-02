@@ -10,7 +10,7 @@ use MooseX::Accessors::ReadWritePrivate;
 use MooseX::StrictConstructor;
 
 
-use version; our $VERSION = qv('v1.14.1');
+use version; our $VERSION = qv('v1.15.0');
 
 
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification
@@ -299,7 +299,7 @@ Elliot Shank C<< <perl@galumph.com> >>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright ©2008-2009, Elliot Shank
+Copyright ©2008-2010, Elliot Shank
 
 
 =head1 DISCLAIMER OF WARRANTY

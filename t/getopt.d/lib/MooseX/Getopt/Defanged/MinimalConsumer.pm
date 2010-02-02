@@ -5,7 +5,7 @@ use utf8;
 
 use Moose;
 
-use version; our $VERSION = qv('v1.14.0');
+use version; our $VERSION = qv('v1.15.0');
 
 
 with 'MooseX::Getopt::Defanged';
