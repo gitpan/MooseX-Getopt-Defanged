@@ -12,7 +12,7 @@ use autodie qw< :default >;
 use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 use Getopt::Long qw<>;
@@ -163,6 +163,7 @@ sub _getopt_invoke_getopt_long_while_handling_exceptions {
 sub _getopt_assign_option_values {
     my ($self, $option_values_ref) = @_;
 
+    my $error_message;
     foreach my $option_attribute (
         @{ $self->_getopt_get_option_attributes() }
     ) {
@@ -171,11 +172,19 @@ sub _getopt_assign_option_values {
             $option_attribute->set_value(
                 $self, $option_values_ref->{$option_name},
             );
+        } elsif ( $option_attribute->is_getopt_required() ) {
+            $error_message .=
+                "The --$option_name argument must be specified.\n";
         } # end if
     } # end foreach
 
+    if ($error_message) {
+        throw_user $error_message;
+    } # end if
+
     return;
 } # end _getopt_get_option_attributes()
+
 
 no Moose::Role;
 
@@ -235,6 +244,14 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
         is              => 'rw',
         isa             => 'Str',
         getopt_aliases  => [ qw< aliases a > ],
+    );
+
+    # Forces the user to specify the "option" on the command-line.
+    has argument => (
+        traits          => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is              => 'rw',
+        isa             => 'Str',
+        getopt_required => 1,
     );
 
     # MooseX::Getopt::Defanged doesn't know how to handle your attribute type,
@@ -310,7 +327,7 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
 
 =head1 VERSION
 
-This document describes MooseX::Getopt::Defanged version 1.14.1.
+This document describes MooseX::Getopt::Defanged version 1.16.0.
 
 
 =head1 DESCRIPTION
@@ -377,6 +394,13 @@ primary one, this option takes a reference to an array of strings.  This
 translates to the L<Getopt::Long> "pipe|separated|alternatives" syntax.
 
 
+=item C<< getopt_required => Bool >>
+
+This turns the option into an argument, i.e. the user I<must> specify it on
+the command line.  This applies even if there is a standard L<Moose>
+C<default> or C<builder>.
+
+
 =item C<< getopt_type => 'AMooseType' >>
 
 If what you specify for the standard C<isa> option isn't what you want this
@@ -422,9 +446,7 @@ invoked will return the string representation of the object.
 
 =head2 Methods
 
-=over
-
-=item C<parse_command_line($argv_ref)>
+=head3 C<parse_command_line($argv_ref)>
 
 Parses the command-line indicated by the parameter, which is expected to be a
 reference to an array of strings.  Returns nothing.
@@ -435,20 +457,17 @@ Throws a L<MooseX::Getopt::Defanged::Exception::User> if the user passes a bad
 option on the command-line.
 
 
-=item C<get_remaining_argv()>
+=head3 C<get_remaining_argv()>
 
 After C<parse_command_line()> is called, this method will get you what remains
 of C<@ARGV> as a list.
 
 
-=item C<get_option_type_metadata()>
+=head3 C<get_option_type_metadata()>
 
 Returns the instance of L<MooseX::Getopt::Defanged::OptionTypeMetadata> used
 to figure out defaults.  You can use this to change how all options of a given
 type are handled.
-
-
-=back
 
 
 =head1 ADDITIONAL EXAMPLES
@@ -637,7 +656,9 @@ with the message C<There's no "$type_name" type.>.
 If the user specifies an invalid option, an instance of
 L<MooseX::Getopt::Defanged::Exception::User> will be thrown with the message
 from L<Getopt::Long>, or C<Could not parse command-line.> if L<Getopt::Long>
-doesn't provide one.
+doesn't provide one.  Similarly, if the user doesn't specify an argument as
+indicated by C<getopt_required>, an exception will be thrown with the message
+C<The --I<whatever> argument must be specified.>.
 
 If an invalid L<Getopt::Long> specification is found or it otherwise complains
 about something programmer specified, an instance of
@@ -657,13 +678,25 @@ perl 5.10
 
 L<autodie>
 
+L<Exception::Class>
+
 L<Getopt::Long>
+
+L<Moose>
 
 L<Moose::Role>
 
 L<Moose::Util::TypeConstraints>
 
+L<MooseX::Accessors::ReadWritePrivate>
+
+L<MooseX::AttributeHelpers>
+
+L<MooseX::StrictConstructor>
+
 L<Readonly>
+
+L<Scalar::Util>
 
 
 =head1 COMPARISONS
@@ -675,7 +708,7 @@ Differences with L<MooseX::Getopt>:
 =item Causing parsing to happen.
 
 L<MooseX::Getopt> has you invoke a C<new_with_options()> constructor.  This
-module requires you to separately construct an object instance and invoke
+module requires you to separately construct an object instance and then invoke
 C<parse_command_line()>.
 
 
@@ -700,7 +733,9 @@ This module only uses L<Getopt::Long>.
 
 After parsing with L<MooseX::Getopt>, C<@ARGV> will have parsed options
 removed; a copy of it as it existed via prior to parsing is available via
-the C<ARGV()> accessor.  After parsing with this role, C<@ARGV> is unchanged.
+the C<ARGV()> accessor.  After parsing with this role, C<@ARGV> is unchanged;
+the stripped-down command-line arguments are available via
+C<get_remaining_argv()>.
 
 
 =item Bad user input handling.

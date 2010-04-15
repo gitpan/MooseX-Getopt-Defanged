@@ -8,7 +8,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 use English qw< -no_match_vars >;
@@ -97,7 +97,7 @@ sub test_2_can_construct_minimal_consumer : Tests(19) {
     does_ok($minimal_consumer, $ROLE_NAME, "$class_name does $ROLE_NAME.");
 
     foreach my $partial_name (
-        qw< name aliases type specification required >
+        qw< name aliases type specification >
     ) {
         my $attribute = "getopt_$partial_name";
         has_attribute_ok(
@@ -119,6 +119,11 @@ sub test_2_can_construct_minimal_consumer : Tests(19) {
         qw< required >
     ) {
         my $attribute = "getopt_$partial_name";
+        has_attribute_ok(
+            $minimal_consumer,
+            $attribute,
+            "Minimal consumer has a $attribute attribute.",
+        );
         can_ok($minimal_consumer, "is_$attribute");
     } # end foreach
 

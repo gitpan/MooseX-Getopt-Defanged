@@ -8,10 +8,10 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
-use English qw< -no_match_vars >;
+use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
 
@@ -27,6 +27,7 @@ use MooseX::Getopt::Defanged qw< :all >;
 use Test::Deep;
 use Test::Moose;
 use Test::More;
+use Test::Exception; # Has to be after use of Test::More.
 
 
 use lib catdir( qw< t getopt.d lib > );
@@ -217,6 +218,69 @@ sub test_5_can_parse_command_line_for_consumer_of_all_types : Tests(30) {
 
     return;
 } # end test_5_can_parse_command_line_for_consumer_of_all_types()
+
+
+sub test_6_complains_about_input_problems : Tests(5) {
+    my $consumer = new_ok("${ROLE_NAME}::ConsumerOfAllTypes");
+
+    throws_ok
+        { $consumer->parse_command_line( [ qw< --num not-a-number > ] ) }
+        'MooseX::Getopt::Defanged::Exception::User',
+        'Got an exception when passing a non-numeric value to --num.';
+    my $error = $EVAL_ERROR;
+    is(
+        $error,
+        qq<Value "not-a-number" invalid for option num (real number expected)\n>,
+        'Got expected message for invalid --num value.'
+    );
+
+    throws_ok
+        { $consumer->parse_command_line( [ qw< --num > ] ) }
+        'MooseX::Getopt::Defanged::Exception::User',
+        'Got an exception when passing a non-numeric value to --num.';
+    $error = $EVAL_ERROR;
+    is(
+        $error,
+        qq<Option num requires an argument\n>,
+        'Got expected message for invalid --num value.'
+    );
+
+    return;
+} # end test_6_complains_about_input_problems()
+
+
+sub test_7_complains_about_missing_getopt_required_values : Tests(7) {
+    my $class_name = "${ROLE_NAME}::ConsumerWithGetoptRequiredAttributes";
+    use_ok($class_name);
+    my $consumer = new_ok($class_name);
+
+    meta_ok($consumer, 'Consumer with getopt_required attributes has a meta class.');
+    does_ok(
+        $consumer,
+        $ROLE_NAME,
+        "Consumer with getopt_required attributes does $ROLE_NAME.",
+    );
+
+
+    throws_ok
+        { $consumer->parse_command_line( [] ) }
+        'MooseX::Getopt::Defanged::Exception::User',
+        'Got an exception when attempting to specify an empty command line with a consumer with getopt_required attributes.';
+    my $error = $EVAL_ERROR;
+    ok(
+        0 <= index ( $error, qq<The --without-default argument must be specified.\n> ),
+        'Exception message contained a complaint for the --without-default argument.',
+    )
+        or  diag("Exception message: $error");
+    ok(
+        0 <= index ( $error, qq<The --with-default argument must be specified.\n> ),
+        'Exception message contained a complaint for the --with-default argument.',
+    )
+        or  diag("Exception message: $error");
+
+    return;
+} # end test_6_complains_about_input_problems()
+
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :

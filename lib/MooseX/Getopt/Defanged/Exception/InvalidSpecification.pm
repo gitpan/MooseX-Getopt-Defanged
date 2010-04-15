@@ -6,7 +6,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 use Readonly;
@@ -80,7 +80,7 @@ or
 =head1 VERSION
 
 This document describes
-MooseX::Getopt::Defanged::Exception::InvalidSpecification version 1.14.1.
+MooseX::Getopt::Defanged::Exception::InvalidSpecification version 1.16.0.
 
 
 =head1 DESCRIPTION

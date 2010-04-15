@@ -6,7 +6,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 sub register_implementation {
@@ -37,7 +37,7 @@ for how to specify options.
 
 This document describes
 Moose::Meta::Attribute::Custom::Trait::MooseX::Getopt::Defanged::Option
-version 1.14.1.
+version 1.16.0.
 
 
 =head1 DESCRIPTION

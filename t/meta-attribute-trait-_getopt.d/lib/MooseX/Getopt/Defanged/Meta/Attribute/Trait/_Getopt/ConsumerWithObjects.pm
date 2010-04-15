@@ -6,7 +6,7 @@ use utf8;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 # Arbitrary OO core module.

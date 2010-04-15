@@ -1,4 +1,9 @@
-v1.15.0 2010-02-xx
+v1.16.0 2010-04-15
+
+    Add support for required command-line options via getopt_required.
+
+
+v1.15.0 2010-02-02
 
     Awesome patch from Tuomas Jormola that fixed a problem with options that
     were objects that also had default values.  See the documentation for

@@ -6,7 +6,7 @@ use utf8;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 use Scalar::Util qw< blessed >;
@@ -70,7 +70,6 @@ has getopt_required => (
     required    => 0,
     default     => sub { 0 },
     reader      => 'is_getopt_required',
-    writer      => 'set_getopt_required',
 );
 
 # How to trim objects into strings for Getopt::Long parsing
@@ -141,7 +140,8 @@ sub get_type_name {
 # Figure out the part of the Getopt::Long specification that isn't the option
 # name and aliases.
 #
-# Expects an instance of MooseX::Getopt::Defanged::OptionTypeMetadata as a parameter.
+# Expects an instance of MooseX::Getopt::Defanged::OptionTypeMetadata as a
+# parameter.
 sub get_type_specification {
     my ($self, $type_metadata) = @_;
 
@@ -162,7 +162,8 @@ sub get_type_specification {
 # Get the complete Getopt::Long specification for this option; name, aliases,
 # type information, everything.
 #
-# Expects an instance of MooseX::Getopt::Defanged::OptionTypeMetadata as a parameter.
+# Expects an instance of MooseX::Getopt::Defanged::OptionTypeMetadata as a
+# parameter.
 sub get_full_specification {
     my ($self, $type_metadata) = @_;
 
@@ -172,14 +173,18 @@ sub get_full_specification {
 } # end get_full_specification()
 
 
-# Retrieve the value of this attribute from the MooseX::Getopt::Defanged consumer, or the
-# default value as specified by the value generator on the type metadata.
+# Retrieve the value of this attribute from the MooseX::Getopt::Defanged
+# consumer, or the default value as specified by the value generator on the
+# type metadata. Returns nothing if getopt_required is set so that the user
+# has to give a value.
 #
-# Expects an object with this attribute (i.e. an consumer of the MooseX::Getopt::Defanged
-# role) and an instance of MooseX::Getopt::Defanged::OptionTypeMetadata as the last
-# parameter.
+# Expects an object with this attribute (i.e. an consumer of the
+# MooseX::Getopt::Defanged role) and an instance of
+# MooseX::Getopt::Defanged::OptionTypeMetadata as the last parameter.
 sub get_value_or_default {
     my ($self, $getopt_consumer, $type_metadata) = @_;
+
+    return if $self->is_getopt_required();
 
     my $value = $self->get_value($getopt_consumer);
 
@@ -268,7 +273,7 @@ L<MooseX::Getopt::Defanged> for how to specify options.
 =head1 VERSION
 
 This document describes
-MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.14.1.
+MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.16.0.
 
 
 =head1 DESCRIPTION

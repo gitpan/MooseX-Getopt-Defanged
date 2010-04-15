@@ -12,6 +12,7 @@ MANIFEST			This list of files
 README
 t/00-use-ok.t
 t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerOfAllTypes.pm
+t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerWithGetoptRequiredAttributes.pm
 t/getopt.d/lib/MooseX/Getopt/Defanged/MinimalConsumer.pm
 t/getopt.t
 t/meta-attribute-trait-_getopt.d/lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt/ConsumerOfAllTypesWithDefaults.pm

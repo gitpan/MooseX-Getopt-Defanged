@@ -10,7 +10,7 @@ use MooseX::Accessors::ReadWritePrivate;
 use MooseX::StrictConstructor;
 
 
-use version; our $VERSION = qv('v1.15.0');
+use version; our $VERSION = qv('v1.16.0');
 
 
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification
@@ -197,7 +197,7 @@ MooseX::Getopt::Defanged::OptionTypeMetadata - Bookkeeping of option type metada
 =head1 VERSION
 
 This document describes MooseX::Getopt::Defanged::OptionTypeMetadata version
-1.14.1.
+1.15.0.
 
 
 =head1 DESCRIPTION
