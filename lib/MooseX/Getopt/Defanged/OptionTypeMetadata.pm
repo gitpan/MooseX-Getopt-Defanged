@@ -10,7 +10,7 @@ use MooseX::Accessors::ReadWritePrivate;
 use MooseX::StrictConstructor;
 
 
-use version; our $VERSION = qv('v1.16.0');
+use version; our $VERSION = qv('v1.17.0');
 
 
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification

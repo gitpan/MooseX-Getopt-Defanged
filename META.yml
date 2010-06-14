@@ -1,12 +1,7 @@
 ---
-name: MooseX-Getopt-Defanged
-version: v1.16.0
+abstract: "Standard processing of command-line options, with Getopt::Long's nasty behavior defanged."
 author:
   - 'Elliot Shank <perl@galumph.com>'
-abstract: "Standard processing of command-line options, with Getopt::Long's nasty behavior defanged."
-license: bsd
-resources:
-  license: http://www.opensource.org/licenses/bsd-license.php
 build_requires:
   Carp: 0
   File::Spec::Functions: 0
@@ -19,6 +14,43 @@ build_requires:
   lib: 0
   overload: 0
   parent: 0
+configure_requires:
+  Module::Build: 0.33
+dynamic_config: 0
+generated_by: 'Module::Build version 0.3603'
+license: bsd
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: MooseX-Getopt-Defanged
+no_index:
+  directory:
+    - xt
+  file: []
+provides:
+  Moose::Meta::Attribute::Custom::Trait::MooseX::Getopt::Defanged::Option:
+    file: lib/Moose/Meta/Attribute/Custom/Trait/MooseX/Getopt/Defanged/Option.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged:
+    file: lib/MooseX/Getopt/Defanged.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged::Exception:
+    file: lib/MooseX/Getopt/Defanged/Exception.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged::Exception::Generic:
+    file: lib/MooseX/Getopt/Defanged/Exception/Generic.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged::Exception::InvalidSpecification:
+    file: lib/MooseX/Getopt/Defanged/Exception/InvalidSpecification.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged::Exception::User:
+    file: lib/MooseX/Getopt/Defanged/Exception/User.pm
+    version: v1.17.0
+  MooseX::Getopt::Defanged::OptionTypeMetadata:
+    file: lib/MooseX/Getopt/Defanged/OptionTypeMetadata.pm
+    version: v1.17.0
+recommends:
+  Readonly::XS: 0
 requires:
   English: 0
   Exception::Class: 0
@@ -37,38 +69,6 @@ requires:
   utf8: 0
   version: 0
   warnings: 0
-recommends:
-  Readonly::XS: 0
-configure_requires:
-  Module::Build: 0.33
-dynamic_config: 0
-provides:
-  Moose::Meta::Attribute::Custom::Trait::MooseX::Getopt::Defanged::Option:
-    file: lib/Moose/Meta/Attribute/Custom/Trait/MooseX/Getopt/Defanged/Option.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged:
-    file: lib/MooseX/Getopt/Defanged.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged::Exception:
-    file: lib/MooseX/Getopt/Defanged/Exception.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged::Exception::Generic:
-    file: lib/MooseX/Getopt/Defanged/Exception/Generic.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged::Exception::InvalidSpecification:
-    file: lib/MooseX/Getopt/Defanged/Exception/InvalidSpecification.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged::Exception::User:
-    file: lib/MooseX/Getopt/Defanged/Exception/User.pm
-    version: v1.16.0
-  MooseX::Getopt::Defanged::OptionTypeMetadata:
-    file: lib/MooseX/Getopt/Defanged/OptionTypeMetadata.pm
-    version: v1.16.0
-generated_by: Module::Build version 0.35
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
-no_index:
-  directory:
-    - xt
-  file: []
+resources:
+  license: http://www.opensource.org/licenses/bsd-license.php
+version: v1.17.0

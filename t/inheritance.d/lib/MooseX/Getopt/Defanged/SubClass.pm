@@ -1,4 +1,4 @@
-package MooseX::Getopt::Defanged::MinimalConsumer;
+package MooseX::Getopt::Defanged::SubClass;
 
 use 5.010;
 use utf8;
@@ -8,7 +8,19 @@ use Moose;
 use version; our $VERSION = qv('v1.17.0');
 
 
-with 'MooseX::Getopt::Defanged';
+extends 'MooseX::Getopt::Defanged::BaseClass';
+
+has test1 => (
+    traits  => [ qw< MooseX::Getopt::Defanged::Option > ],
+    is      => 'ro',
+    isa     => 'Str',
+);
+
+has test2 => (
+    traits  => [ qw< MooseX::Getopt::Defanged::Option > ],
+    is      => 'ro',
+    isa     => 'Str',
+);
 
 
 no Moose;
@@ -17,16 +29,6 @@ __PACKAGE__->meta()->make_immutable();
 
 
 1;
-
-__END__
-
-=encoding utf8
-
-=head1 NAME
-
-MooseX::Getopt::Defanged::MinimalConsumer - Minimal consumer of the L<MooseX::Getopt::Defanged> role used for testing.
-
-=cut
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :

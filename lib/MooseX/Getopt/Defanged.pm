@@ -12,7 +12,7 @@ use autodie qw< :default >;
 use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
-use version; our $VERSION = qv('v1.16.0');
+use version; our $VERSION = qv('v1.17.0');
 
 
 use Getopt::Long qw<>;
@@ -62,7 +62,7 @@ sub _getopt_get_option_attributes {
         grep {
             $_->does('MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt')
         }
-        map  { $metadata->get_attribute($_) } $metadata->get_attribute_list();
+        $metadata->get_all_attributes();
 
     return \@option_attributes;
 } # end _getopt_get_option_attributes()
@@ -327,7 +327,7 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
 
 =head1 VERSION
 
-This document describes MooseX::Getopt::Defanged version 1.16.0.
+This document describes MooseX::Getopt::Defanged version 1.17.0.
 
 
 =head1 DESCRIPTION
