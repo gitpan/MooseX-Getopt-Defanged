@@ -12,7 +12,7 @@ use autodie qw< :default >;
 use English qw< $EVAL_ERROR -no_match_vars >;
 use Readonly;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 
 use Getopt::Long qw<>;
@@ -97,9 +97,11 @@ sub _getopt_invoke_getopt_long {
     my %option_values =
         map { ## no critic (Lax::ProhibitComplexMappings::LinesNotStatements)
                 $_->get_actual_option_name()
-            =>  $_->get_value_or_default($self, $type_metadata)
+            =>  $_->get_stringified_value_or_default($self, $type_metadata)
         }
-        grep { defined $_->get_value_or_default($self, $type_metadata) }
+        grep {
+            defined $_->get_stringified_value_or_default($self, $type_metadata)
+        }
             @option_attributes;
     my @specification_strings =
         map { $_->get_full_specification($type_metadata) } @option_attributes;
@@ -163,14 +165,16 @@ sub _getopt_invoke_getopt_long_while_handling_exceptions {
 sub _getopt_assign_option_values {
     my ($self, $option_values_ref) = @_;
 
+    my $type_metadata = $self->get_option_type_metadata();
+
     my $error_message;
     foreach my $option_attribute (
         @{ $self->_getopt_get_option_attributes() }
     ) {
         my $option_name = $option_attribute->get_actual_option_name();
         if ( exists $option_values_ref->{$option_name} ) {
-            $option_attribute->set_value(
-                $self, $option_values_ref->{$option_name},
+            $option_attribute->set_value_with_destringification(
+                $option_values_ref->{$option_name}, $self, $type_metadata,
             );
         } elsif ( $option_attribute->is_getopt_required() ) {
             $error_message .=
@@ -194,7 +198,7 @@ __END__
 
 =encoding utf8
 
-=for stopwords ArrayRef ArrayRefs olde stringification
+=for stopwords ArrayRef ArrayRefs foO olde stringification RegexpRef whitespace
 
 =head1 NAME
 
@@ -244,6 +248,23 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
         is              => 'rw',
         isa             => 'Str',
         getopt_aliases  => [ qw< aliases a > ],
+    );
+
+    # Change which modifiers get applied when compiling the value of a regular
+    # expression option.  The default modifiers are "m" and "s".
+    has regex_option => (
+        traits                  => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is                      => 'rw',
+        isa                     => 'RegexpRef',
+        getopt_regex_modifiers  => [ qw< x m s > ],
+    );
+
+    # Make a regular expression option have no modifiers applied to it.
+    has no_modifiers_regex_option => (
+        traits                  => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is                      => 'rw',
+        isa                     => 'RegexpRef',
+        getopt_regex_modifiers  => [ ],
     );
 
     # Forces the user to specify the "option" on the command-line.
@@ -310,7 +331,7 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
         default             => sub {
             DateTime::Format::Natural->new()->parse_datetime('yesterday')
         },
-        getopt_stringifier  => sub { scalar shift },
+        getopt_stringifier  => sub { scalar $_[0] },
         getopt_type         => 'Str',
     );
 
@@ -327,7 +348,7 @@ MooseX::Getopt::Defanged - Standard processing of command-line options, with Get
 
 =head1 VERSION
 
-This document describes MooseX::Getopt::Defanged version 1.17.0.
+This document describes MooseX::Getopt::Defanged version 1.18.0.
 
 
 =head1 DESCRIPTION
@@ -426,19 +447,41 @@ You can find out the default types handled and their default specifications by
 looking at L<MooseX::Getopt::Defanged::OptionTypeMetadata>.
 
 
-=item C<< getopt_stringifier => 'CodeRef | Str' >>
+=item C<< getopt_regex_modifiers => [ qw< some combination of "m", "s", "i", "x", "p" > ] >>
+
+If the option is a C<RegexpRef> or a C<Maybe[RegexpRef]>, this allows you to
+specify what modifiers will be applied when compiling the regular expression
+specified on the command-line; see L<perlop/"Regexp Quote-Like Operators"> for
+the significance of each.  This defaults to C<< [ qw< m s > ] >>.
+
+
+=item C<< getopt_stringifier => CodeRef | Str >>
 
 If the option is an object and a default value is given, one must translate
 the object to a string representation prior to L<Getopt::Long> parsing.
 Together with coercion, the option will get its object form after command line
 arguments parsing. "getopt_stringifier" allows to you to specify how this
 stringification is done.  The value can either be a code reference or a
-string. The function handling stringification will receive the option object
+string.  The function handling stringification will receive the option object
 as the only argument.  It is expected to return the string value of the object
-that can be later coerced back to a new instance of the object's class. A
+that can be later coerced back to a new instance of the object's class.  A
 short-cut is provided if you specify a string as "getopt_stringifier" value.
 It is then expected that the object contains method of this name which when
 invoked will return the string representation of the object.
+
+Rather than specifying this on individual options, you can handle an entire
+type via
+L<MooseX::Getopt::Defanged::OptionTypeMetadata/set_default_stringifier>.
+
+
+=item C<< getopt_destringifier => CodeRef >>
+
+If the option is an object and you don't have some form of coercion between a
+string and the object type, you can say how to do the translation by
+specifying this.  The value must be a code reference that takes a string as
+its only argument and returns an object.  Generally, you want to use
+L<MooseX::Getopt::Defanged::OptionTypeMetadata/set_default_destringifier>, but
+this allows you to handle the translation on an individual option.
 
 
 =back
@@ -553,6 +596,25 @@ like so:
 In this scenario, if the user specifies the option without giving the value,
 the attribute will be set to C<0>.  If the user doesn't specify the option,
 the attribute will be undefined.
+
+
+=item A RegexpRef which allows whitespace and ignores case.
+
+An attribute given as
+
+    has regex_option => (
+        traits                  => [ qw< MooseX::Getopt::Defanged::Option > ],
+        is                      => 'rw',
+        isa                     => 'RegexpRef',
+        getopt_regex_modifiers  => [ qw< x m s i > ],
+    );
+
+will allow the user to say
+
+    myprogram --regex-option '\A foo \z'
+
+to match "foo", "foO", and "FOO".
+
 
 
 =item ArrayRef which requires precisely two values.
@@ -798,4 +860,4 @@ POSSIBILITY OF SUCH DAMAGES.
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

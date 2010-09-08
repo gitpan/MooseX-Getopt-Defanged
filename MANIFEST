@@ -8,13 +8,12 @@ lib/MooseX/Getopt/Defanged/Exception/InvalidSpecification.pm
 lib/MooseX/Getopt/Defanged/Exception/User.pm
 lib/MooseX/Getopt/Defanged/Meta/Attribute/Trait/_Getopt.pm
 lib/MooseX/Getopt/Defanged/OptionTypeMetadata.pm
-LICENSE
 MANIFEST			This list of files
-META.yml
 README
 t/00-use-ok.t
 t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerOfAllTypes.pm
 t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerWithGetoptRequiredAttributes.pm
+t/getopt.d/lib/MooseX/Getopt/Defanged/ConsumerWithRegexpRefAttributes.pm
 t/getopt.d/lib/MooseX/Getopt/Defanged/MinimalConsumer.pm
 t/getopt.t
 t/inheritance.d/lib/MooseX/Getopt/Defanged/BaseClass.pm
@@ -37,3 +36,5 @@ xt/author/perlcriticrc-tests
 xt/author/pod_coverage.t
 xt/author/pod_syntax.t
 xt/author/README
+LICENSE
+META.yml

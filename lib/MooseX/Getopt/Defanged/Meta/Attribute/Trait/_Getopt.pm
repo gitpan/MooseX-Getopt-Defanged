@@ -6,7 +6,7 @@ use utf8;
 use Moose::Role;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 
 use Scalar::Util qw< blessed >;
@@ -22,6 +22,8 @@ subtype '_MooseX_Getopt_Defanged_Aliases' => as 'ArrayRef[Str]';
 coerce '_MooseX_Getopt_Defanged_Aliases'
     => from 'Str'
     => via { [$_] };
+
+enum '_MooseX_Getopt_Defanged_Regular_Expression_Modifier' => qw< m s i x p >;
 
 
 # This will be the key as returned by Getopt::Long.  By default, the
@@ -72,13 +74,33 @@ has getopt_required => (
     reader      => 'is_getopt_required',
 );
 
-# How to trim objects into strings for Getopt::Long parsing
+# How to turn objects into strings for Getopt::Long parsing.
 has getopt_stringifier => (
     isa         => 'CodeRef|Str',
     is          => 'rw',
     required    => 0,
     reader      => 'get_getopt_stringifier',
     writer      => 'set_getopt_stringifier',
+);
+
+# How to turn strings into objects for setting attribute values.
+has getopt_destringifier => (
+    isa         => 'CodeRef',
+    is          => 'rw',
+    required    => 0,
+    reader      => 'get_getopt_destringifier',
+    writer      => 'set_getopt_destringifier',
+);
+
+# If this option is a RegexpRef, which modifiers should be applied when
+# compiling?
+has getopt_regex_modifiers => (
+    isa         => 'ArrayRef[_MooseX_Getopt_Defanged_Regular_Expression_Modifier]',
+    is          => 'rw',
+    required    => 0,
+    default     => sub { [ qw< m s > ] },
+    reader      => 'get_getopt_regex_modifiers',
+    writer      => 'set_getopt_regex_modifiers',
 );
 
 
@@ -173,15 +195,15 @@ sub get_full_specification {
 } # end get_full_specification()
 
 
-# Retrieve the value of this attribute from the MooseX::Getopt::Defanged
-# consumer, or the default value as specified by the value generator on the
-# type metadata. Returns nothing if getopt_required is set so that the user
-# has to give a value.
+# Retrieve the stringified value of this attribute from the
+# MooseX::Getopt::Defanged consumer, or the default value as specified by the
+# value generator on the type metadata. Returns nothing if getopt_required is
+# set so that the user has to give a value.
 #
-# Expects an object with this attribute (i.e. an consumer of the
+# Expects an object with this attribute (i.e. a consumer of the
 # MooseX::Getopt::Defanged role) and an instance of
 # MooseX::Getopt::Defanged::OptionTypeMetadata as the last parameter.
-sub get_value_or_default {
+sub get_stringified_value_or_default {
     my ($self, $getopt_consumer, $type_metadata) = @_;
 
     return if $self->is_getopt_required();
@@ -196,7 +218,7 @@ sub get_value_or_default {
         $value = $default_value_generator->();
     } # end if
 
-    my $value_string = $self->get_stringified_value($value);
+    my $value_string = $self->_get_stringified_value($value, $type_metadata);
     if (blessed $value_string) {
         throw_invalid_specification
                 q<The value of the ">,
@@ -205,26 +227,34 @@ sub get_value_or_default {
     } # end if
 
     return $value_string;
-} # end get_value_or_default()
+} # end get_stringified_value_or_default()
+
 
 # Stringify the given value.
-sub get_stringified_value {
-    my ($self, $value) = @_;
+sub _get_stringified_value {
+    my ($self, $value, $type_metadata) = @_;
 
     # no need to stringify
     if (not ref $value) {
         return $value;
     } # end if
 
-    # no "getopt_stringifier"
     my $stringifier = $self->get_getopt_stringifier();
+    if (not defined $stringifier) {
+        my $type_name = $self->get_type_name();
+        $stringifier = $type_metadata->get_default_stringifier($type_name);
+    } # end if
+
     if (not defined $stringifier) {
         return $value;
     } # end if
 
     # stringify each element
     if (ref $value eq 'ARRAY') {
-        return [ map { $self->get_stringified_value($_) } @{$value} ];
+        return [
+            map { $self->_get_stringified_value($_, $type_metadata) }
+                @{$value}
+        ];
     } # end if
 
     # "getopt_stringifier" is a code ref that handles stringification
@@ -248,7 +278,38 @@ sub get_stringified_value {
     } # end if
 
     return $value->$stringifier();
-} # end get_stringified_value()
+} # end _get_stringified_value()
+
+
+# This is the opposite of get_stringified_value_or_default().
+#
+# Expects the string representation of the new value, an object with this
+# attribute (i.e. a consumer of the MooseX::Getopt::Defanged role), and an
+# instance of MooseX::Getopt::Defanged::OptionTypeMetadata as the last
+# parameter.
+sub set_value_with_destringification {
+    my ($self, $new_value, $getopt_consumer, $type_metadata) = @_;
+
+    # Yeah, $new_value should just be a plain string, but be paranoid.
+    if (not blessed $new_value and defined $new_value) {
+        my $deserializer = $self->get_getopt_destringifier();
+        if (not $deserializer) {
+            $deserializer =
+                $type_metadata->get_default_destringifier(
+                    $self->get_type_name()
+                );
+        } # end if
+
+        if ($deserializer) {
+            $new_value = $deserializer->($self, $new_value);
+        } # end if
+    } # end if
+
+    $self->set_value($getopt_consumer, $new_value);
+
+    return;
+} # set_value_with_destringification()
+
 
 
 1;
@@ -273,7 +334,7 @@ L<MooseX::Getopt::Defanged> for how to specify options.
 =head1 VERSION
 
 This document describes
-MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.17.0.
+MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt version 1.18.0.
 
 
 =head1 DESCRIPTION
@@ -349,4 +410,4 @@ POSSIBILITY OF SUCH DAMAGES.
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

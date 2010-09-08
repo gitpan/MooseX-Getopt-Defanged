@@ -14,6 +14,9 @@ verbose = %f: %m at line %l, column %c.  %e.  (Severity: %s, %p)\n
 # useful.)
 [-CodeLayout::RequireTidyCode]
 
+# Just assume modern POD parsing/translating.
+[-Documentation::RequirePodLinksIncludeText]
+
 # Don't require POD for tests.
 [-Documentation::RequirePodSections]
 

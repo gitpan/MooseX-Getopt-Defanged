@@ -10,11 +10,15 @@ use MooseX::Accessors::ReadWritePrivate;
 use MooseX::StrictConstructor;
 
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
+
+
+use English qw< $EVAL_ERROR -no_match_vars >;
 
 
 use MooseX::Getopt::Defanged::Exception::InvalidSpecification
     qw< throw_invalid_specification >;
+use MooseX::Getopt::Defanged::Exception::User qw< throw_user >;
 
 
 has _default_specifications => (
@@ -29,6 +33,7 @@ has _default_specifications => (
         delete  => 'delete_default_specification',
     },
     reader      => '_get_default_specifications',
+    writer      => undef,
 );
 
 has _default_value_generators => (
@@ -42,6 +47,35 @@ has _default_value_generators => (
         set     => 'set_default_value_generator',
     },
     reader      => '_get_default_value_generators',
+    writer      => undef,
+);
+
+has _default_stringifiers => (
+    metaclass   => 'Collection::Hash',
+    isa         => 'HashRef[CodeRef]',
+    is          => 'ro',
+    required    => 1,
+    init_arg    => undef,   # Cannot be specified in constructor call.
+    default     => sub { {} },
+    provides    => {
+        set     => 'set_default_stringifier',
+    },
+    reader      => '_get_default_stringifiers',
+    writer      => undef,
+);
+
+has _default_destringifiers => (
+    metaclass   => 'Collection::Hash',
+    isa         => 'HashRef[CodeRef]',
+    is          => 'ro',
+    required    => 1,
+    init_arg    => undef,   # Cannot be specified in constructor call.
+    default     => \&_get_initial_default_destringifiers,
+    provides    => {
+        set     => 'set_default_destringifier',
+    },
+    reader      => '_get_default_destringifiers',
+    writer      => undef,
 );
 
 
@@ -54,6 +88,7 @@ sub _get_initial_default_specifications {
         'Str'                   => '=s',
         'Int'                   => '=i',
         'Num'                   => '=f',
+        'RegexpRef'             => '=s',
         'ArrayRef'              => '=s{1,}',
         'ArrayRef[Str]'         => '=s{1,}',
         'ArrayRef[Int]'         => '=i{1,}',
@@ -95,7 +130,39 @@ sub _get_initial_default_value_generators {
     } # end while
 
     return \%defaults;
-} # end _get_initial_default_specifications()
+} # end _get_initial_default_value_generators()
+
+
+sub _get_initial_default_destringifiers {
+    my %defaults = (
+        RegexpRef => sub {
+            my ($attribute_meta, $string_value) = @_;
+
+            return if not defined $string_value;
+
+            my $modifiers =
+                join q<>, @{ $attribute_meta->get_getopt_regex_modifiers() };
+
+            my $raw = "(?$modifiers:$string_value)";
+            my $compiled;
+            eval { $compiled = qr<$raw>; 1; } ## no critic(RegularExpressions)
+                or do {
+                    my $explanation =
+                        $EVAL_ERROR // 'failed for an unknown reason.';
+                    my $option_name =
+                        $attribute_meta->get_actual_option_name();
+
+                    throw_user
+                        "The --$option_name, $raw, could not be compiled: $explanation";
+                };
+
+            return $compiled;
+        },
+    );
+    $defaults{'Maybe[RegexpRef]'} = $defaults{RegexpRef};
+
+    return \%defaults;
+} # end _get_initial_default_destringifiers()
 
 
 sub get_default_specification {
@@ -140,6 +207,47 @@ sub get_default_value_generator {
 } # end get_default_value_generator()
 
 
+sub get_default_stringifier {
+    my ($self, $type_name) = @_;
+
+    my $stringifiers = $self->_get_default_stringifiers();
+
+    return $stringifiers->{$type_name} if exists $stringifiers->{$type_name};
+
+    my $current_type = find_type_constraint($type_name)
+        or throw_invalid_specification qq<There's no "$type_name" type.>;
+
+    while ( $current_type = $current_type->parent() ) {
+        my $current_name = $current_type->name();
+        return $stringifiers->{$current_name}
+            if exists $stringifiers->{$current_name};
+    } # end while
+
+    return;
+} # end get_default_stringifier()
+
+
+sub get_default_destringifier {
+    my ($self, $type_name) = @_;
+
+    my $destringifiers = $self->_get_default_destringifiers();
+
+    return $destringifiers->{$type_name}
+        if exists $destringifiers->{$type_name};
+
+    my $current_type = find_type_constraint($type_name)
+        or throw_invalid_specification qq<There's no "$type_name" type.>;
+
+    while ( $current_type = $current_type->parent() ) {
+        my $current_name = $current_type->name();
+        return $destringifiers->{$current_name}
+            if exists $destringifiers->{$current_name};
+    } # end while
+
+    return;
+} # end get_default_destringifier()
+
+
 no Moose;
 no Moose::Util::TypeConstraints;
 
@@ -150,7 +258,7 @@ __END__
 
 =encoding utf8
 
-=for stopwords metadata
+=for stopwords metadata stringification
 
 =head1 NAME
 
@@ -197,7 +305,7 @@ MooseX::Getopt::Defanged::OptionTypeMetadata - Bookkeeping of option type metada
 =head1 VERSION
 
 This document describes MooseX::Getopt::Defanged::OptionTypeMetadata version
-1.15.0.
+1.18.0.
 
 
 =head1 DESCRIPTION
@@ -214,6 +322,7 @@ This contains default mappings for the following types:
     Str                    =s
     Int                    =i
     Num                    =f
+    RegexpRef              =s
     ArrayRef               =s{1,}
     ArrayRef[Str]          =s{1,}
     ArrayRef[Int]          =i{1,}
@@ -228,41 +337,64 @@ Also, for each type, "Maybe[«type»]" uses the same specification.
 
 =head1 INTERFACE
 
-=over
-
-=item C<get_default_specification($type)>
+=head2 C<get_default_specification($type)>
 
 Given a type name, returns the default L<Getopt::Long> specification for the
 type, if there is one.
 
 
-=item C<< set_default_specification($type => $specification) >>
+=head2 C<< set_default_specification($type => $specification) >>
 
 Sets the default L<Getopt::Long> specification for options of the given type.
 Use this to override the defaults or to specify a default for a type you
 created via L<Moose>'s C<subtype> mechanism.
 
 
-=item C<delete_default_specification($type)>
+=head2 C<delete_default_specification($type)>
 
 Removes any default specification for the given type (because the empty string
 is a valid specification).
 
 
-=item C<get_default_value_generator($type)>
+=head2 C<get_default_value_generator($type)>
 
 Given a type name, returns a code reference that can provide a default value
 for an option of the given type, if there is one.
 
 
-=item C<< set_default_value_generator( $type => sub { ... } ) >>
+=head2 C<< set_default_value_generator( $type => sub { ... } ) >>
 
 Sets the generator of default values for options of the given type.  The
 subroutine will get no arguments.  Use this to override the defaults or to
 specify a default for a type you created via L<Moose>'s C<subtype> mechanism.
 
 
-=back
+=head2 C<get_default_stringifier($type)>
+
+Given a type name, returns a code reference that can convert from an option of
+the given type to a string, if there is one.
+
+
+=head2 C<< set_default_stringifier( $type => sub { ... } ) >>
+
+Sets the to-string converter for options of the given type.  The subroutine
+will get a single argument of the value to convert to a string.  Use this to
+override the defaults or to specify a default for a type you created if you
+don't want to use Perl's standard stringification or L<overload>.
+
+
+=head2 C<get_default_destringifier($type)>
+
+Given a type name, returns a code reference that can convert from a string to
+the value an option of the given type, if there is one.
+
+
+=head2 C<< set_default_destringifier( $type => sub { ... } ) >>
+
+Sets the from-string converter for options of the given type.  The subroutine
+will get a single argument of the string to be turned into the option value.
+Use this to override the defaults or to specify a default for a type you
+created if you don't want to use L<Moose>'s C<subtype> mechanism.
 
 
 =head1 DIAGNOSTICS
@@ -327,4 +459,4 @@ POSSIBILITY OF SUCH DAMAGES.
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

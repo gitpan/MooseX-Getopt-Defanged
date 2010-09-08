@@ -8,12 +8,12 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 use File::Find;
 use File::Slurp;
 
-use Test::More qw< no_plan >; ## no critic (Bangs::ProhibitNoPlan)
+use Test::More qw< no_plan >;
 
 
 my $no_file_message = 'Failed to find any files with $VERSION.'; ## no critic (RequireInterpolationOfMetachars)

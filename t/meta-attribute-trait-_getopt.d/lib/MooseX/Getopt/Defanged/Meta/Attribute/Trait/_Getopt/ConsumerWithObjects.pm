@@ -6,11 +6,7 @@ use utf8;
 use Moose;
 use Moose::Util::TypeConstraints;
 
-use version; our $VERSION = qv('v1.17.0');
-
-
-# Arbitrary OO core module.
-use Getopt::Long qw< >;
+use version; our $VERSION = qv('v1.18.0');
 
 
 with 'MooseX::Getopt::Defanged';
@@ -83,4 +79,4 @@ MooseX::Getopt::Defanged::Meta::Attribute::Trait::_Getopt::ConsumerWithObjects -
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

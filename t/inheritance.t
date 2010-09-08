@@ -6,7 +6,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 
 use File::Spec::Functions qw< catdir >;
@@ -40,4 +40,4 @@ lives_ok(
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

@@ -2,13 +2,17 @@
 
 package MooseX::Getopt::Defanged::Test;
 
+# All kinds of regex testing going on here, so we can't use the standard
+# stuff.
+## no critic (RequireDotMatchAnything, RequireExtendedFormatting, RequireLineBoundaryMatching)
+
 use 5.010;
 use utf8;
 
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 
 use English qw< $EVAL_ERROR -no_match_vars >;
@@ -38,6 +42,7 @@ Readonly::Scalar my $ROLE_NAME => 'MooseX::Getopt::Defanged';
 Readonly::Scalar my $TEST_STRING    => 'blah';
 Readonly::Scalar my $TEST_INTEGER   => 123;
 Readonly::Scalar my $TEST_NUMBER    => 1.23;
+Readonly::Scalar my $TEST_REGEX     => 'x.x';
 Readonly::Scalar my $TEST_KEY       => 'key';
 
 # Boolean attribute will be handled separately.
@@ -56,6 +61,11 @@ Readonly my @TEST_5_PARAMETERS => (
         name            => 'num',
         command_line    => $TEST_NUMBER,
         expected        => $TEST_NUMBER,
+    },
+    {
+        name            => 'regexpref',
+        command_line    => $TEST_REGEX,
+        expected        => qr/(?ms:$TEST_REGEX)/,
     },
     {
         name            => 'arrayref',
@@ -153,7 +163,7 @@ sub test_3_can_parse_command_line_for_minimal_consumer : Tests(3) {
 } # end test_3_can_parse_command_line_for_minimal_consumer()
 
 
-sub test_5_can_parse_command_line_for_consumer_of_all_types : Tests(30) {
+sub test_5_can_parse_command_line_for_consumer_of_all_types : Tests(32) {
     my $class_name = "${ROLE_NAME}::ConsumerOfAllTypes";
     use_ok($class_name);
     my $consumer = new_ok($class_name);
@@ -279,9 +289,67 @@ sub test_7_complains_about_missing_getopt_required_values : Tests(7) {
         or  diag("Exception message: $error");
 
     return;
-} # end test_6_complains_about_input_problems()
+} # end test_7_complains_about_missing_getopt_required_values()
+
+
+sub test_8_regexpref_applies_modifiers : Tests(11) {
+    my $class_name = "${ROLE_NAME}::ConsumerWithRegexpRefAttributes";
+    use_ok($class_name);
+    my $consumer = new_ok($class_name);
+
+    meta_ok($consumer, 'Consumer with RegexpRef attributes has a meta class.');
+    does_ok(
+        $consumer,
+        $ROLE_NAME,
+        "Consumer with RegexpRef attributes does $ROLE_NAME.",
+    );
+
+    $consumer->parse_command_line(
+        [
+            map { ( "--regex-$_" => 'x' ) } qw< default m s i x p no-modifiers >
+        ]
+    );
+
+    cmp_deeply(
+        $consumer->get_regex_default(),
+        qr<(?ms:x)>,
+        'Got expected compiled regex for --regex-default.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_m(),
+        qr<(?m:x)>,
+        'Got expected compiled regex for --regex-m.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_s(),
+        qr<(?s:x)>,
+        'Got expected compiled regex for --regex-s.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_i(),
+        qr<(?i:x)>,
+        'Got expected compiled regex for --regex-i.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_x(),
+        qr<(?x:x)>,
+        'Got expected compiled regex for --regex-x.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_p(),
+        qr<(?p:x)>,
+        'Got expected compiled regex for --regex-p.',
+    );
+    cmp_deeply(
+        $consumer->get_regex_no_modifiers(),
+        qr<(?:x)>,
+        'Got expected compiled regex for --regex-no-modifiers.',
+    );
+
+    return;
+} # end test_8_regexpref_applies_modifiers()
 
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :

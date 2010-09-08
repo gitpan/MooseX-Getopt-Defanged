@@ -9,6 +9,9 @@ verbose = %f: %m at line %l, column %c.  %e.  (Severity: %s, %p)\n
 [ControlStructures::ProhibitPostfixControls]
 flowcontrol = warn die carp croak cluck confess goto exit throw_user throw_generic throw_invalid_specification
 
+# Just assume modern POD parsing/translating.
+[-Documentation::RequirePodLinksIncludeText]
+
 # No Emacs around here.
 [-Editor::RequireEmacsFileVariables]
 

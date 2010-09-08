@@ -8,7 +8,7 @@ use utf8;
 use strict;
 use warnings;
 
-use version; our $VERSION = qv('v1.17.0');
+use version; our $VERSION = qv('v1.18.0');
 
 
 use English qw< -no_match_vars >;
@@ -51,6 +51,9 @@ Readonly::Hash my %ATTRIBUTE_TYPE_DEFAULT_METADATA => (
     'Num'               => {
         specification   => '=f',
     },
+    'RegexpRef'         => {
+        specification   => '=s',
+    },
     'ArrayRef'          => {
         specification   => '=s{1,}',
     },
@@ -88,7 +91,7 @@ sub test_1_mooseness : Tests(1) {
 } # end test_1_mooseness()
 
 
-sub test_2_can_construct_minimal_consumer : Tests(19) {
+sub test_2_can_construct_minimal_consumer : Tests(18) {
     my $class_name = "${ROLE_NAME}::MinimalConsumer";
     use_ok($class_name);
     my $minimal_consumer = new_ok($class_name);
@@ -131,7 +134,7 @@ sub test_2_can_construct_minimal_consumer : Tests(19) {
 } # end test_2_can_construct_minimal_consumer()
 
 
-sub test_3_consumer_of_all_types_with_defaults : Tests(220) {
+sub test_3_consumer_of_all_types_with_defaults : Tests(238) {
     my $consumer_of_all_types =
         _test_instance_creation(
             "${ROLE_NAME}::ConsumerOfAllTypesWithDefaults"
@@ -413,4 +416,4 @@ sub test_6_consumer_with_object_attributes : Tests(7) {
 
 # setup vim: set filetype=perl tabstop=4 softtabstop=4 expandtab :
 # setup vim: set shiftwidth=4 shiftround textwidth=78 autoindent :
-# setup vim: set foldmethod=indent foldlevel=0 encoding=utf8 :
+# setup vim: set foldmethod=indent foldlevel=0 fileencoding=utf8 :
